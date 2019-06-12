@@ -4,6 +4,7 @@
 
 syMoveAction::syMoveAction(syEnemy* pParent) : syEnemyState(pParent)
 {
+
 }
 
 

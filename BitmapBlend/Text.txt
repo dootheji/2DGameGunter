@@ -1,0 +1,3 @@
+#SPRITE 10  null null
+number0 1 0 0 0 0 acnlcolorcolor.bmp acnlcolorcolormask.bmp 
+0	0	0 32 32

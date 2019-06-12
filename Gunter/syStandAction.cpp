@@ -13,5 +13,14 @@ syStandAction::~syStandAction()
 
 void syStandAction::Process(sySprite* pTarget)
 {
-	this->m_pOwner->SetPos(this->m_pOwner->getPos().x + 1, this->m_pOwner->getPos().y +1 );
+	float x = m_pOwner->getPos().x + g_fSecondPerFrame;
+	float y = m_pOwner->getPos().y + g_fSecondPerFrame;
+
+
+
+	if (g_ActionInput.bWKey == KEY_HOLD)
+	{
+		//m_pOwner->m_info.
+	}
+	m_pOwner->SetPos(x, y);
 }

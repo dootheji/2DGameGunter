@@ -39,6 +39,6 @@ void syEnemy::SetTransition(DWORD dwEvent)
 }
 bool syEnemy::Frame()
 {
-
+	sySprite::Frame();
 	return true;
 }

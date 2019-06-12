@@ -106,17 +106,20 @@ bool	sample::Init()
 	
 	for (int iSprite = 0; iSprite < pData->m_SpriteListData.size(); iSprite++)
 	{
-		syEnemy s1;
-		s1.Init();
-		s1.SetRTSize(0.6f);
-		s1.Set(pData->m_SpriteListData[iSprite], pData->m_iBitmapID, pData->m_iMaskBitmapID);
-		s1.m_info.bLoop = true;
-		s1.m_bDead = false;
-		s1.m_iCurrentFrame = 0;
-		s1.SetRTSize(0.75f);
-		s1.setSpeed(500.0f);
-		s1.i_moveFlag = 1;
-		s1.SetPos(500, 417);
+	
+		shared_ptr<syEnemy> s1 = make_shared<syEnemy>();
+		s1.get()->Init();
+		s1.get()->SetRTSize(0.6f);
+		s1.get()->Set(pData->m_SpriteListData[iSprite], pData->m_iBitmapID, pData->m_iMaskBitmapID);
+		s1.get()->m_info.bLoop = true;
+		s1.get()->m_bDead = false;
+		s1.get()->m_iCurrentFrame = 0;
+		
+
+		s1.get()->setSpeed(0.0f);
+		s1.get()->i_moveFlag = 0;
+
+		s1.get()->SetPos(200, 200);
 		m_mario.push_back(s1);
 	}
 
@@ -135,7 +138,7 @@ void sample::setSpriteNum()
 		isFront = true;
 	}
 
-	syPoint m_posinfo = m_gunter[iSpriteNum].getPos();
+	syPoint m_posinfo = m_gunter[iSpriteNum].m_info.InitPos;
 	//¾Õ º¸´Â Æë±Ï
 	if (isFront)
 	{
@@ -271,34 +274,16 @@ bool   sample::Frame()
 
 	}
 
-	//	if (syCollision::RectInRect(m_gunter[iSpriteNum].m_rtColl, r) &&
-	//		m_gunter[iSpriteNum].m_rtColl.bottom >= r.top &&
-	//		m_gunter[iSpriteNum].delY<0)
-	//	{
-	//		m_gunter[iSpriteNum].Set
-	//		(
-	//			syPoint(m_gunter[iSpriteNum].getPos().x, r.top- m_gunter[iSpriteNum].m_rtDraw.bottom/2),
-	//			m_gunter[iSpriteNum].m_info.rtList[m_iTimerSprite],
-	//			m_gunter[iSpriteNum].getSpeed()
-	//		);
-	//		break;
-	//	}
-	//	else 
-	//	{
-	//		m_gunter[iSpriteNum].Set
-	//		(syPoint(m_gunter[iSpriteNum].getPos().x, m_gunter[iSpriteNum].getPos().y),
-	//			m_gunter[iSpriteNum].m_info.rtList[m_iTimerSprite], 
-	//			m_gunter[iSpriteNum].getSpeed());
-	//	}
-	//	
-	//}
+	
+	m_mario[0].get()->Frame();
+	/*m_mario[0].Set
+	(syPoint(m_mario[0].getPos().x, m_mario[0].getPos().y),
+		m_mario[0].m_info.rtList[0],
+		m_mario[0].getSpeed()
+	);*/
+	m_mario[0].get()->ProcessAI(&m_gunter[iSpriteNum]);
 
 
-	/*m_gunter[iSpriteNum].Set(syPoint(m_gunter[iSpriteNum].getPos().x, min(417-m_gunter[iSpriteNum].m_rtDraw.bottom/2,m_gunter[iSpriteNum].getPos().y)),
-							m_gunter[iSpriteNum].m_info.rtList[m_iTimerSprite], m_gunter[iSpriteNum].getSpeed());*/
-	 
-	m_mario[0].Frame();
-	m_mario[0].ProcessAI(&m_gunter[iSpriteNum]);
 	//m_mario[0].Set
 	//(syPoint(m_mario[0].getPos().x, min(417-m_mario[0].m_rtDraw.bottom/2, m_mario[0].getPos().y)),
 	//	m_mario[0].m_info.rtList[0], 
@@ -314,13 +299,8 @@ bool   sample::Render()
 {
 	
 	m_bk.Render();
-	m_mario[0].Render();
+	m_mario[0].get()->Render();
 	m_gunter[iSpriteNum].Render();
-
-	//m_gunter[iSprite].Draw(417, 400, SRCAND);
-
-//	m_mario[0].Draw(SRCCOPY);
-	//m_gunter[iSpriteNum].Draw(SRCCOPY);
 
 	TCHAR m_csDebug[256];
 	_stprintf_s(m_csDebug,
@@ -331,33 +311,6 @@ bool   sample::Render()
 
 	SetROP2(g_hOffScreenDC, R2_NOTXORPEN);
 
-
-
-	Rectangle(g_hOffScreenDC,
-		m_gunter[iSpriteNum].m_rtColl.left,
-		m_gunter[iSpriteNum].m_rtColl.top,
-		m_gunter[iSpriteNum].m_rtColl.right,
-		m_gunter[iSpriteNum].m_rtColl.bottom);
-
-	//for (int row = 0; row < 40; row++)
-	//{
-	//	//for (int col = 0; col < 30; col++)
-	//	//{
-	//	//	int i = m_tiles[&bkRect[row][col]];
-	//	//	if (i != -1)
-	//	//	{
-	//	//		Rectangle(g_hOffScreenDC,
-	//	//			bkRect[row][col].left,
-	//	//			bkRect[row][col].top,
-	//	//			bkRect[row][col].left + bkRect[row][col].right,
-	//	//			bkRect[row][col].top + bkRect[row][col].bottom);
-	//	//	}
-
-	//	//}
-
-	//	
-
-	//}
 	for (auto &a : m_tiles)
 	{
 		Rectangle(g_hOffScreenDC,
@@ -367,11 +320,18 @@ bool   sample::Render()
 			a.first->bottom);
 	}
 
+
 	int PrevMode = Rectangle(g_hOffScreenDC,
-		m_mario[0].m_rtColl.left,
-		m_mario[0].m_rtColl.top,
-		m_mario[0].m_rtColl.right,
-		m_mario[0].m_rtColl.bottom);
+		m_gunter[iSpriteNum].m_rtColl.left,
+		m_gunter[iSpriteNum].m_rtColl.top,
+		m_gunter[iSpriteNum].m_rtColl.right,
+		m_gunter[iSpriteNum].m_rtColl.bottom);
+
+ Rectangle(g_hOffScreenDC,
+		m_mario[0].get()->m_rtColl.left,
+		m_mario[0].get()->m_rtColl.top,
+		m_mario[0].get()->m_rtColl.right,
+		m_mario[0].get()->m_rtColl.bottom);
 
 	SetROP2(m_hOffScreenDC, PrevMode);
 
@@ -385,9 +345,9 @@ bool   sample::Release()
 	{
 		m_gunter[iSprite].Release();
 	}
-	for (int iSprite = 0; iSprite < m_mario.size(); iSprite++)
+	for (auto &a : m_mario)
 	{
-		m_mario[iSprite].Release();
+		a.get()->Release();
 	}
 
 	m_bk.Release();

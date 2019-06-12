@@ -46,7 +46,8 @@ bool  sySprite::Set(syObjectInfo info, int id, int mask)
 		m_pBitmapMask = I_BitmapMgr.GetPtr(m_info.iMaskID);
 	}
 	m_fDeltaTime = m_info.fTime / m_info.iNumFrame;
-	SetPos(m_info.InitPos);
+
+	syObject::SetPos(m_info.InitPos);
 	return true;
 }
 
@@ -75,7 +76,7 @@ bool  sySprite::Frame()
 		}
 		m_fTmpTime = 0.0f;
 	}
-	
+	Set(this->getPos(), this->m_info.rtList[m_iCurrentFrame], this->getSpeed());
 	return syObject::Frame();
 }
 

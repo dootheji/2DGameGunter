@@ -15,6 +15,9 @@ class sample : public syCore
 	int		   m_iData;
 	int        m_iTimerSprite;
 	int		   iSpriteNum; 
+
+	int iKeyNumber0;
+	int iKeyNumber1;
 	std::vector<sySprite>   m_gunter;
 	std::vector<shared_ptr<syEnemy>>   m_mario;
 	std::map<RECT*, int>	m_tiles;

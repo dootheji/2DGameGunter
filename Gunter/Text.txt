@@ -1,5 +1,5 @@
 #SPRITE 8 realGunter.bmp null
-0forword 7 0 0 1 0 null null
+0 forword 7 0 0 1 0 null null
 0	99 298  37 54 
 1	134 298 37 54 
 2	173 298 37 54 
@@ -7,7 +7,7 @@
 4	246 298 37 54
 5	284 298 37 54
 6	323 298 37 54
-1backword 7 0 0 1 0 null null
+1 backword 7 0 0 1 0 null null
 0	620 296 37 54
 1	584 296 37 54
 2	545 296 37 54
@@ -15,15 +15,15 @@
 4	470 296 37 54 
 5	432 296 37 54 
 6	393 296 37 54
-2landingforword 3 1 0 0 0 null null
+2 landingforword 3 1 0 0 0 null null
 0	86 479 51 49 
 1	135 479 51 49 
 2	182 479 41 49 
-3landingbackword 3 1 0 0 0 null null
+3 landingbackword 3 1 0 0 0 null null
 0	344 479 51 49 
 1	300 479 51 49 
 2	256 479 41 49 
-4jumpforword 12 0 0 1 0 null null
+4 jumpforword 12 0 0 1 0 null null
 0	88 410 49 43 
 1	133 403 40 49 
 2	175 396 38 50 
@@ -36,7 +36,7 @@
 9	86 479 51 49 
 10	135 479 51 49 
 11	182 479 41 49 
-5jumpbackword 12 0 0 1 0 null null
+5 jumpbackword 12 0 0 1 0 null null
 0	836 469 49 43 
 1	796 462 40 49 
 2	757 454 38 50 
@@ -49,7 +49,7 @@
 9	344 479 51 49 
 10	300 479 46 49 
 11	256 479 41 49 
-6idleforword 48 0 0 3 0 null null
+6 idleforword 48 0 0 3 0 null null
 0	81 133 39 53 
 1	119 133 39 53 
 2	158 133 39 53 
@@ -98,7 +98,7 @@
 45	772 133 39 53
 46	809 133 39 53
 47	847 133 39 53
-7idlebackword 48 0 0 3 0 null null
+7 idlebackword 48 0 0 3 0 null null
 0	781 28 39 53 
 1	743 28 39 53 
 2	707 28 39 53 

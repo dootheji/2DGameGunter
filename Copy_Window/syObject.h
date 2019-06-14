@@ -11,6 +11,7 @@ struct syObjectInfo
 	int			iBitmapID;
 	int			iMaskID;
 	bool		bLoop;
+	int			iSpriteNum;
 
 	syPoint		m_pos;
 	RECT		rt;

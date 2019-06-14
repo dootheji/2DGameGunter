@@ -2,7 +2,7 @@
 #include "syObject.h"
 #include "syPlayer.h"
 #include "syBitmapMgr.h"
-
+#include "syScriptManager.h"
 class sySprite : public syObject
 {
 public:
@@ -20,11 +20,17 @@ public:
 	bool  Render();
 	bool  Release();
 
-	virtual bool  Set(syObjectInfo info, int id, int mask);
+	void SetSpriteID(int spriteid)
+	{
+		m_iSpriteID = spriteid;
+	};
+
+	virtual bool  Set(syObjectInfo info, int bitmapid, int mask);
 	void Set(syPoint pos, RECT rt, float fSpeed) 
 	{
 		m_info.InitPos = pos;
 		syObject::Set(pos,rt,fSpeed);
+		
 	};
 	virtual void  Draw(DWORD dwMode);
 	void  Draw(int x, int y, DWORD dwMode);

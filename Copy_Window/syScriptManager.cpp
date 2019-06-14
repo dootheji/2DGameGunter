@@ -44,7 +44,8 @@ bool syScriptManager::GameDataLoad(T_STR name, sySpriteData& data)
 	{
 		//TObjectInfo info;
 		_fgetts(buffer, _countof(buffer), fp);
-		_stscanf_s(buffer, _T("%s%d%f%f%f%f%s%s"),
+		_stscanf_s(buffer, _T("%d%s%d%f%f%f%f%s%s"),
+			&data.m_SpriteListData[iSprite].iSpriteNum,
 			temp, _countof(temp),
 			&data.m_SpriteListData[iSprite].iNumFrame,
 			&data.m_SpriteListData[iSprite].InitPos.x,

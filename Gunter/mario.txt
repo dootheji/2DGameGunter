@@ -1,21 +1,21 @@
 #SPRITE	8 mario.bmp null
-0forword 3 0 0 1 0 null null
+0 forword 3 0 0 1 0 null null
 0	380	70	51	84
 1	450	70	51	84
 2	520	70	51	84
-1backword 3 0 0 1 0 null null
+1 backword 3 0 0 1 0 null null
 0	170 70	51	84
 1	110	70	54	84
 2	70	70	51	84
-2idlefront 1 0 0 1 0 null null
+2 idlefront 1 0 0 1 0 null null
 0	300	70	51	87
-3idlebackword 1 0 0 1 0 null null
+3 idlebackword 1 0 0 1 0 null null
 0	240	70	51	84
-4idlefront 1 0 0 1 0 null null
+4 idlefront 1 0 0 1 0 null null
 0	300	70	51	87
-5idlebackword 1 0 0 1 0 null null
+5 idlebackword 1 0 0 1 0 null null
 0	240	70	51	84
-6idlefront 1 0 0 1 0 null null
+6 idlefront 1 0 0 1 0 null null
 0	300	70	51	87
-7idlebackword 1 0 0 1 0 null null
+7 idlebackword 1 0 0 1 0 null null
 0	240	70	51	84

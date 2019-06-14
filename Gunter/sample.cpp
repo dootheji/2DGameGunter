@@ -5,14 +5,12 @@ enum objectState
 	STATE_LANDINGFORWORD, STATE_LANDINGBACKWORD, 
 	STATE_JUMPINGFORWORD, STATE_JUMPINGBACKWORD,
 	STATE_IDLEFORWORD, STATE_IDLEBACKWORD
-
 };
 
 
 
 sample::sample()
 {
-
 	m_iTimerSprite = 0;
 	iSpriteNum = 0;
 }
@@ -82,8 +80,8 @@ bool	sample::Init()
 	
 
 
-	int iKeyNumber0 = I_ScriptManager.Load(L"Text.txt");
-	int iKeyNumber1 = I_ScriptManager.Load(L"mario.txt");
+	iKeyNumber0 = I_ScriptManager.Load(L"Text.txt");
+	iKeyNumber1 = I_ScriptManager.Load(L"mario.txt");
 	sySpriteData* pData = I_ScriptManager.GetPtr(iKeyNumber0);
 
 	for (int iSprite = 0; iSprite < pData->m_SpriteListData.size(); iSprite++)
@@ -102,11 +100,11 @@ bool	sample::Init()
 		s0.SetPos(100,100);
 		m_gunter.push_back(s0);
 	}
+
 	pData = I_ScriptManager.GetPtr(iKeyNumber1);
 	
 	for (int iSprite = 0; iSprite < pData->m_SpriteListData.size(); iSprite++)
 	{
-	
 		shared_ptr<syEnemy> s1 = make_shared<syEnemy>();
 		s1.get()->Init();
 		s1.get()->SetRTSize(0.6f);
@@ -128,6 +126,8 @@ bool	sample::Init()
 
 void sample::setSpriteNum()
 {
+	
+
 	static bool isFront = true;
 	if (g_ActionInput.bAKey == KEY_HOLD)
 	{
@@ -289,8 +289,8 @@ bool   sample::Frame()
 	//	m_mario[0].m_info.rtList[0], 
 	//	m_mario[0].getSpeed());
 
-	
-	return true;
+
+d	return true;
 }
 
 

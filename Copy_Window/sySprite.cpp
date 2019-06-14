@@ -18,7 +18,7 @@ sySprite::~sySprite()
 }
 
 
-bool  sySprite::Set(syObjectInfo info, int id, int mask)
+bool  sySprite::Set(syObjectInfo info, int bitmapid, int mask)
 {
 	m_info = info;
 	
@@ -31,7 +31,7 @@ bool  sySprite::Set(syObjectInfo info, int id, int mask)
 	}
 	if (m_info.iBitmapID == -1)
 	{
-		m_pBitmap = I_BitmapMgr.GetPtr(id);
+		m_pBitmap = I_BitmapMgr.GetPtr(bitmapid);
 	}
 	else
 	{

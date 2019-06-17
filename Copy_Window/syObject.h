@@ -60,6 +60,7 @@ public:
 	RECT		m_rtObj;
 	RECT		m_rtResize;
 	RECT        m_rtColl;
+	sySphere	m_Sphere;
 	syBitmap*   GetBitmap() { return m_pBitmap; }
 	syBitmap*   GetBitmapMask() { return m_pBitmapMask; }
 	RECT		GetDrawRect() { return m_rtDraw; }

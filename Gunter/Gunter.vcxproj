@@ -124,6 +124,7 @@
   <ItemGroup>
     <ClInclude Include="sample.h" />
     <ClInclude Include="syAttackAction.h" />
+    <ClInclude Include="syDeadAction.h" />
     <ClInclude Include="syEnemy.h" />
     <ClInclude Include="syEnemyState.h" />
     <ClInclude Include="syMoveAction.h" />
@@ -132,6 +133,7 @@
   <ItemGroup>
     <ClCompile Include="sample.cpp" />
     <ClCompile Include="syAttackAction.cpp" />
+    <ClCompile Include="syDeadAction.cpp" />
     <ClCompile Include="syEnemy.cpp" />
     <ClCompile Include="syEnemyState.cpp" />
     <ClCompile Include="syMoveAction.cpp" />

@@ -1,18 +1,10 @@
 #include "sample.h"
-enum objectState 
-{
-	STATE_FORWORD, STATE_BACKWORD, 
-	STATE_LANDINGFORWORD, STATE_LANDINGBACKWORD, 
-	STATE_JUMPINGFORWORD, STATE_JUMPINGBACKWORD,
-	STATE_IDLEFORWORD, STATE_IDLEBACKWORD
-};
-
-
-
+static float fTimer = 0.0f;
 sample::sample()
 {
 	m_iTimerSprite = 0;
-	iSpriteNum = 0;
+	m_iTimerSpriteMARIO = 0;
+	//iSpriteNum = 0;
 }
 
 
@@ -67,6 +59,22 @@ void	sample::drawtileRect()
 
 bool	sample::Init()
 {
+	I_Fsm.Add(STATE_STAND, EVENT_TIMER, STATE_MOVE);
+	I_Fsm.Add(STATE_STAND, STATE_DEAD, STATE_DEAD);
+
+	I_Fsm.Add(STATE_MOVE, EVENT_FINDTARGET, STATE_ATTACK);
+	I_Fsm.Add(STATE_MOVE, STATE_DEAD, STATE_DEAD);
+	I_Fsm.Add(STATE_MOVE, EVENT_FINDTARGET, STATE_STAND);
+
+	I_Fsm.Add(STATE_ATTACK, EVENT_TIMER, STATE_STAND);
+	I_Fsm.Add(STATE_ATTACK, STATE_DEAD, STATE_DEAD);
+	I_Fsm.Add(STATE_ATTACK, EVENT_LOSTTARGET, STATE_MOVE);
+
+
+	I_SoundMgr.Load(L"../../data/sound/mario.mp3");
+	I_SoundMgr.Load(L"../../data/sound/Jump.wav");
+	I_SoundMgr.Load(L"../../data/sound/Mariodies.wav");
+	I_SoundMgr.Load(L"../../data/sound/Gameover.wav");
 	syObjectInfo info;
 	info.m_pos = syPoint(m_rtClient.right / 2, m_rtClient.bottom / 2);
 	RECT rt = { 0,0,m_rtClient.right, m_rtClient.bottom };
@@ -78,7 +86,6 @@ bool	sample::Init()
 	m_bk.i_moveFlag = 0;
 	drawtileRect();
 	
-
 
 	iKeyNumber0 = I_ScriptManager.Load(L"Text.txt");
 	iKeyNumber1 = I_ScriptManager.Load(L"mario.txt");
@@ -100,33 +107,18 @@ bool	sample::Init()
 		s0.SetPos(100,100);
 		m_gunter.push_back(s0);
 	}
+	current_gunter = &m_gunter[0];
 
-	pData = I_ScriptManager.GetPtr(iKeyNumber1);
+	mario.Init();
+	current_mario = mario.GetMario(1);
+
 	
-	for (int iSprite = 0; iSprite < pData->m_SpriteListData.size(); iSprite++)
-	{
-		shared_ptr<syEnemy> s1 = make_shared<syEnemy>();
-		s1.get()->Init();
-		s1.get()->SetRTSize(0.6f);
-		s1.get()->Set(pData->m_SpriteListData[iSprite], pData->m_iBitmapID, pData->m_iMaskBitmapID);
-		s1.get()->m_info.bLoop = true;
-		s1.get()->m_bDead = false;
-		s1.get()->m_iCurrentFrame = 0;
-		
-
-		s1.get()->setSpeed(0.0f);
-		s1.get()->i_moveFlag = 0;
-
-		s1.get()->SetPos(200, 200);
-		m_mario.push_back(s1);
-	}
-
 	return true;
 }
 
 void sample::setSpriteNum()
 {
-	
+	sySound* pSoundJump = I_SoundMgr.GetPtr(1);
 
 	static bool isFront = true;
 	if (g_ActionInput.bAKey == KEY_HOLD)
@@ -137,36 +129,39 @@ void sample::setSpriteNum()
 	{
 		isFront = true;
 	}
+	if (g_ActionInput.bWKey == KEY_PUSH)
+	{
+		pSoundJump->Play();
+	}
 
-	syPoint m_posinfo = m_gunter[iSpriteNum].m_info.InitPos;
+
+	syPoint m_posinfo = current_gunter->m_info.InitPos;
 	//앞 보는 펭귄
 	if (isFront)
 	{
 		//jumping
-		if (m_gunter[iSpriteNum].delY > -1 || g_ActionInput.bWKey == KEY_HOLD)
+		if (current_gunter->delY > -1 || g_ActionInput.bWKey == KEY_HOLD)
 		{
-			iSpriteNum = STATE_JUMPINGFORWORD;
-			m_gunter[iSpriteNum].SetPos(m_posinfo);
+			current_gunter = &m_gunter[STATE_JUMPINGFORWORD];
+			current_gunter->SetPos(m_posinfo);
 			m_iTimerSprite = 0;
 			return;
 		}
 	
 		else
 		{	//walking
-			//m_gunter[iSpriteNum].setDel(m_gunter[iSpriteNum].delX, 0);
 			if (g_ActionInput.bDKey == KEY_HOLD)
 			{
-				iSpriteNum = STATE_FORWORD;
-				m_gunter[iSpriteNum].SetPos(m_posinfo);
+				current_gunter = &m_gunter[STATE_FORWORD];
+				current_gunter->SetPos(m_posinfo);
 				m_iTimerSprite = 0;
 			}
 
 			//idle
 			else
 			{
-				iSpriteNum = STATE_IDLEFORWORD;
-				//m_gunter[iSpriteNum].setDel(0, 0);
-				m_gunter[iSpriteNum].SetPos(m_posinfo);
+				current_gunter = &m_gunter[STATE_IDLEFORWORD];
+				current_gunter->SetPos(m_posinfo);
 				m_iTimerSprite = 0;
 				return;
 			}
@@ -176,61 +171,84 @@ void sample::setSpriteNum()
 	else
 	{
 		//jumping
-		if (m_gunter[iSpriteNum].delY > -1 || g_ActionInput.bWKey == KEY_HOLD)
+		if (current_gunter->delY > -1 || g_ActionInput.bWKey == KEY_HOLD)
 		{
-			iSpriteNum = STATE_JUMPINGBACKWORD;
-			m_gunter[iSpriteNum].SetPos(m_posinfo);
+			current_gunter = &m_gunter[STATE_JUMPINGBACKWORD];
+			current_gunter->SetPos(m_posinfo);
 			m_iTimerSprite = 0;
-		
 		}
-		
 		else
 		{
 			//walking
-			//m_gunter[iSpriteNum].setDel(m_gunter[iSpriteNum].delX, 0);
 			if (g_ActionInput.bAKey == KEY_HOLD)
 			{
-				iSpriteNum = STATE_BACKWORD;
-				m_gunter[iSpriteNum].SetPos(m_posinfo);
+				current_gunter = &m_gunter[STATE_BACKWORD];
+				current_gunter->SetPos(m_posinfo);
 				m_iTimerSprite = 0;
 			}
-
 			//idle
 			else
 			{
-				iSpriteNum = STATE_IDLEBACKWORD;
-				//m_gunter[iSpriteNum].setDel(0, 0);
-				m_gunter[iSpriteNum].SetPos(m_posinfo);
+				current_gunter = &m_gunter[STATE_IDLEBACKWORD];
+				current_gunter->SetPos(m_posinfo);
 				m_iTimerSprite = 0;
-				
 			}
 		}
 	}
 }
 
+void	sample::playerkill()
+{	///////////////어케해야해!!!!!!!몰라!!!!!!!
+	sySound* pSoundDie = I_SoundMgr.GetPtr(2);
+	sySound* pGameOver = I_SoundMgr.GetPtr(3);
+	if (syCollision::RectInRect(current_mario->m_rtColl, current_gunter->m_rtColl))
+	{
+		if (current_gunter->delY < 0 && current_gunter->delY>-1)
+		{
+			pSoundDie->Play();
+	/*		current_mario.get()->m_bDead = true;*/
+
+		}
+		else
+		{
+			pGameOver->Play();
+			/*current_gunter->m_bDead = true;*/
+			//delete current_gunter;
+			//current_gunter->Release();
+	
+		}
+	}
+
+}
 bool   sample::Frame()
 {
+	sySound* pSound = I_SoundMgr.GetPtr(0);
+
+	pSound->Play();
 	setSpriteNum();
 	//시간
-	static float fTimer = 0.0f;
-	if (m_iTimerSprite == 0) fTimer = 0.0f;
 	fTimer += g_fSecondPerFrame;
 	if (fTimer >= 1.0f)
 	{
 		m_iTimerSprite++;
-		if (m_iTimerSprite > m_gunter[iSpriteNum].m_info.iNumFrame-1)
-		{
-			m_iTimerSprite = 0;
-			
-		}
-		fTimer = 0.0f;
 	}
-	//일단 프레임 걸고
-
-
 	m_bk.Frame();
-	m_gunter[iSpriteNum].Frame();
 
+	current_gunter->Frame();
+	tileColl(current_gunter);
+
+	current_mario.get()->Frame();
+	current_mario.get()->ProcessAI(current_gunter);
+	tileColl(current_mario.get());
+
+	//마리오와 부딪혔을 시
+	playerkill();
+	return true;
+}
+template <typename T>
+void	sample::tileColl(T *gamecharacter)
+{
+	
 	for (auto a : m_tiles)
 	{
 		RECT r;
@@ -239,74 +257,54 @@ bool   sample::Frame()
 		r.left = a.first->left;
 		r.right = a.first->right;
 
-
-		if (syCollision::RectInRect(m_gunter[iSpriteNum].m_rtColl, r) )
+		if (syCollision::RectInRect(gamecharacter->m_rtColl, r))
 		{
-			if (m_gunter[iSpriteNum].m_rtColl.bottom >= r.top && m_gunter[iSpriteNum].delY < 0)//위에서 떨어지는 상황
+			if (gamecharacter->m_rtColl.bottom >= r.top &&gamecharacter->delY < 0)//위에서 떨어지는 상황
 			{
-				m_gunter[iSpriteNum].Set
-					(syPoint(m_gunter[iSpriteNum].getPos().x, r.top - (m_gunter[iSpriteNum].m_rtDraw.bottom / 2)-1 ),
-					m_gunter[iSpriteNum].m_info.rtList[m_iTimerSprite],
-					m_gunter[iSpriteNum].getSpeed()
-					);
+				gamecharacter->Set
+				(syPoint(gamecharacter->getPos().x, r.top - (gamecharacter->m_rtDraw.bottom / 2) -1),
+					gamecharacter->m_info.rtList[m_iTimerSprite%(gamecharacter->m_info.iNumFrame)],
+					gamecharacter->getSpeed()
+				);
 			}
-			else if (m_gunter[iSpriteNum].m_rtColl.top <= r.bottom && m_gunter[iSpriteNum].delY > 0) //밑에서 올라오는 상황
+			else if (gamecharacter->m_rtColl.top <= r.bottom && gamecharacter->delY > 0) //밑에서 올라오는 상황
 			{
-				m_gunter[iSpriteNum].setDel(m_gunter[iSpriteNum].delX, -m_gunter[iSpriteNum].delY);
-				m_gunter[iSpriteNum].Set
-					(syPoint(m_gunter[iSpriteNum].getPos().x, r.bottom + (m_gunter[iSpriteNum].m_rtDraw.bottom / 2)+1),
-					m_gunter[iSpriteNum].m_info.rtList[m_iTimerSprite],
-					m_gunter[iSpriteNum].getSpeed()
-					);
-
+				gamecharacter->setDel(gamecharacter->delX, -gamecharacter->delY);
+				gamecharacter->Set
+				(syPoint(gamecharacter->getPos().x, r.bottom + (gamecharacter->m_rtDraw.bottom / 2)+1 ),
+					gamecharacter->m_info.rtList[m_iTimerSprite% (gamecharacter->m_info.iNumFrame)],
+					gamecharacter->getSpeed()
+				);
 			}
 			//옆구리로 들어올 때
-			
+			//오른쪽
+
 			break;
 		}
 		else
 		{
-			m_gunter[iSpriteNum].Set
-			(syPoint(m_gunter[iSpriteNum].getPos().x, m_gunter[iSpriteNum].getPos().y),
-				m_gunter[iSpriteNum].m_info.rtList[m_iTimerSprite],
-				m_gunter[iSpriteNum].getSpeed());
+			gamecharacter->Set
+			(syPoint(gamecharacter->getPos().x, gamecharacter->getPos().y),
+				gamecharacter->m_info.rtList[m_iTimerSprite% (gamecharacter->m_info.iNumFrame)],
+				gamecharacter->getSpeed());
 		}
 
 	}
-
-	
-	m_mario[0].get()->Frame();
-	/*m_mario[0].Set
-	(syPoint(m_mario[0].getPos().x, m_mario[0].getPos().y),
-		m_mario[0].m_info.rtList[0],
-		m_mario[0].getSpeed()
-	);*/
-	m_mario[0].get()->ProcessAI(&m_gunter[iSpriteNum]);
-
-
-	//m_mario[0].Set
-	//(syPoint(m_mario[0].getPos().x, min(417-m_mario[0].m_rtDraw.bottom/2, m_mario[0].getPos().y)),
-	//	m_mario[0].m_info.rtList[0], 
-	//	m_mario[0].getSpeed());
-
-
-d	return true;
 }
-
 
 
 bool   sample::Render()
 {
 	
 	m_bk.Render();
-	m_mario[0].get()->Render();
-	m_gunter[iSpriteNum].Render();
+	current_mario.get()->Render();
+	current_gunter->Render();
 
 	TCHAR m_csDebug[256];
 	_stprintf_s(m_csDebug,
 		L"delx = %1.5f dely = %1.5f  pos(%1.5f, %1.5f)",
-		m_gunter[iSpriteNum].delX, m_gunter[iSpriteNum].delY,
-		m_gunter[iSpriteNum].getPos().x, m_gunter[iSpriteNum].getPos().y);
+		current_gunter->delX, current_gunter->delY,
+		current_gunter->getPos().x, current_gunter->getPos().y);
 	PrintText(syPoint(100, 100), m_csDebug, RGB(0, 0, 0));
 
 	SetROP2(g_hOffScreenDC, R2_NOTXORPEN);
@@ -322,16 +320,16 @@ bool   sample::Render()
 
 
 	int PrevMode = Rectangle(g_hOffScreenDC,
-		m_gunter[iSpriteNum].m_rtColl.left,
-		m_gunter[iSpriteNum].m_rtColl.top,
-		m_gunter[iSpriteNum].m_rtColl.right,
-		m_gunter[iSpriteNum].m_rtColl.bottom);
+		current_gunter->m_rtColl.left,
+		current_gunter->m_rtColl.top,
+		current_gunter->m_rtColl.right,
+		current_gunter->m_rtColl.bottom);
 
  Rectangle(g_hOffScreenDC,
-		m_mario[0].get()->m_rtColl.left,
-		m_mario[0].get()->m_rtColl.top,
-		m_mario[0].get()->m_rtColl.right,
-		m_mario[0].get()->m_rtColl.bottom);
+	 current_mario.get()->m_rtColl.left,
+	 current_mario.get()->m_rtColl.top,
+	 current_mario.get()->m_rtColl.right,
+	 current_mario.get()->m_rtColl.bottom);
 
 	SetROP2(m_hOffScreenDC, PrevMode);
 
@@ -341,13 +339,9 @@ bool   sample::Render()
 
 bool   sample::Release()
 {
-	for (int iSprite = 0; iSprite < m_gunter.size(); iSprite++)
+	for (auto &a : m_gunter)
 	{
-		m_gunter[iSprite].Release();
-	}
-	for (auto &a : m_mario)
-	{
-		a.get()->Release();
+		a.Release();
 	}
 
 	m_bk.Release();

@@ -24,8 +24,6 @@ bool syObject::Load(std::wstring filename)
 	m_pBitmap = I_BitmapMgr.GetPtr(iKey);
 	if (m_pBitmap == nullptr) return false;
 
-
-
 	T_STR name = m_pBitmap->m_szPath;
 	name += L"Mask_";
 	name += m_pBitmap->m_szName;
@@ -35,7 +33,6 @@ bool syObject::Load(std::wstring filename)
 
 	return true;
 }
-
 
 
 bool syObject::Init()
@@ -54,7 +51,6 @@ bool syObject::Frame()
 
 	if (i_moveFlag == 3)		// 중력 존재
 	{
-		
 		setDel(0, delY);
 		if (g_ActionInput.bWKey == KEY_HOLD)
 		{
@@ -75,12 +71,11 @@ bool syObject::Frame()
 		{
 			setDel(1, delY);
 		}
-		setDel(delX, delY - 0.05);
-		
-		pos.x = m_pos.x + delX * m_fSpeed * g_fSecondPerFrame;
-		pos.y = m_pos.y - delY * m_fSpeed * g_fSecondPerFrame*3;
 	}
+	setDel(delX, delY - 0.05);
 
+	pos.x = m_pos.x + delX * m_fSpeed * g_fSecondPerFrame;
+	pos.y = m_pos.y - delY * m_fSpeed * g_fSecondPerFrame * 3;
 	SetPos(pos);
 	return true;
 }
@@ -99,6 +94,9 @@ bool syObject::Render()
 	{
 		m_pBitmap->Draw(m_rtDraw.left, m_rtDraw.top, m_rtObj, SRCCOPY);
 	}
+
+
+
 	return true;
 }
 
@@ -115,6 +113,14 @@ void syObject::SetColliRect(syPoint p, RECT rt)
 	m_rtColl.top = p.y - (rt.bottom*m_frtFactor / 2);
 	m_rtColl.right = rt.right*m_frtFactor + m_rtColl.left;
 	m_rtColl.bottom = rt.bottom*m_frtFactor + m_rtColl.top;
+
+	float fDistance = sqrt(
+		(m_rtColl.right - m_rtColl.left) * (m_rtColl.right - m_rtColl.left)
+		+
+		(m_rtColl.bottom - m_rtColl.top) * (m_rtColl.bottom - m_rtColl.top));
+
+	m_Sphere.vCenter = m_pos;
+	m_Sphere.fRadius = fDistance / 2;
 }
 
 void syObject::SetDrawRect(syPoint p, RECT rt)

@@ -8,4 +8,3 @@ public:
 public:
 	void Process(sySprite* pTarget);
 };
-

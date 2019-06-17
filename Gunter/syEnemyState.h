@@ -5,7 +5,7 @@ class syEnemy;
 class syEnemyState
 {
 protected:
-	syEnemy*	m_pOwner;
+	shared_ptr<syEnemy>	m_pOwner;
 	
 public:
 	int			iscriptnum = 0;

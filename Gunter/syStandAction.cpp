@@ -18,16 +18,25 @@ void syStandAction::Process(sySprite* pTarget)
 
 	if (m_pOwner->isFront)
 	{
-		m_pOwner->GetMario(2);
+		syPoint m_posinfo = m_pOwner->m_current->m_info.InitPos;
+		m_pOwner->GetMario(SY_FORWORD);
+		m_pOwner->m_current->SetPos(m_posinfo);
+
 	}
 	else
 	{
-		m_pOwner->GetMario(3);
+		syPoint m_posinfo = m_pOwner->m_current->m_info.InitPos;
+		m_pOwner->GetMario(SY_FORWORD);
+		m_pOwner->m_current->SetPos(m_posinfo);
 
 	}
-	if (syCollision::RectInRect(m_pOwner->m_rtColl, pTarget->m_rtColl))
+	if (syCollision::RectInRect(m_pOwner->m_current->m_rtColl, pTarget->m_rtColl))
 	{
-		m_pOwner->SetTransition(STATE_DEAD);
+		m_pOwner->SetTransition(SYSTATE_DEAD);
 		return;
+	}
+	if (m_pOwner->isStand)
+	{
+		m_pOwner->SetTransition(SYSTATE_TILECOLL);
 	}
 }

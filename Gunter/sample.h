@@ -18,19 +18,27 @@ class sample : public syCore
 
 	int iKeyNumber0;
 	int iKeyNumber1;
-	std::vector<sySprite>   m_gunter;
-	sySprite*				current_gunter;
-	shared_ptr<syEnemy>		current_mario;
-	syEnemy					mario;
-	std::map<RECT*, int>	m_tiles;
-	syObject m_bk;
-	RECT bkRect[40][30];
+	std::vector<sySprite>					m_gunter;
+	sySprite*								current_gunter;
+	std::vector<shared_ptr<syEnemy>>		current_mario;
+	//shared_ptr<syEnemy> 	mario;
+	std::map<RECT*, int>					m_tiles;
+	syObject								m_bk;
+	syObject								m_win;
+	syObject								m_gameover;
+	RECT									bkRect[40][30];
 
 private :
 	void	drawtileRect();
+	//template <typename T>
+	//void	tileColl(T *gamecharacter);
 	template <typename T>
 	void	tileColl(T *gamecharacter);
-	void	playerkill();
+	template <typename T>
+	void	tileColl(shared_ptr<T> gamecharacter);
+	template <typename T>
+	bool	istileColl(T *gamecharacter);
+
 public:
 	bool   Init();
 	bool   Frame();

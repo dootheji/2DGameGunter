@@ -58,6 +58,8 @@ bool  sySprite::Init()
 
 bool  sySprite::Frame()
 {
+	float temdx = this->delX;
+	float temdy = this->delY;
 	if (m_info.bLoop == false)
 	{
 		m_info.fLifeTime -= g_fSecondPerFrame;
@@ -69,6 +71,7 @@ bool  sySprite::Frame()
 	m_fTmpTime += g_fSecondPerFrame;
 	if (m_fTmpTime > m_fDeltaTime)
 	{
+		float delY = this->delY;
 		m_iCurrentFrame++;
 		if (m_iCurrentFrame >= m_info.iNumFrame)
 		{
@@ -77,6 +80,7 @@ bool  sySprite::Frame()
 		m_fTmpTime = 0.0f;
 	}
 	Set(this->getPos(), this->m_info.rtList[m_iCurrentFrame], this->getSpeed());
+	this->setDel(temdx, temdy);
 	return syObject::Frame();
 }
 

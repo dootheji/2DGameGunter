@@ -68,4 +68,7 @@
     <Text Include="mario.txt" />
     <Text Include="background.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+  </ItemGroup>
 </Project>

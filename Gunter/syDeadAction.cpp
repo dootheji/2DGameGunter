@@ -13,20 +13,37 @@ syDeadAction::~syDeadAction()
 void syDeadAction::Process(sySprite* pTarget)
 {
 	
-
-		if (pTarget->delY < 0 && pTarget->delY>-1)
+	static float fTime = 0;
+	fTime += g_fSecondPerFrame;
+	if (fTime > 1.0f)
+	{
+		fTime = 0.0f;
+		if (m_pOwner->m_current == m_pOwner.get()->m_mario[4])
 		{
-		
-			/*		current_mario.get()->m_bDead = true;*/
-			m_pOwner->GetMario(4);
+			syPoint m_posinfo = m_pOwner->m_current->m_info.InitPos;
+			m_pOwner->m_current->SetPos(m_posinfo);
+			m_pOwner->m_current->m_bDead = true;
 		}
-		else
-		{
-			
-			/*current_gunter->m_bDead = true;*/
-			//delete current_gunter;
-			//current_gunter->Release();
+	}
 
-		}
+	if (m_pOwner->m_current == m_pOwner->m_mario[4])
+	{
+		syPoint m_posinfo = m_pOwner->m_current->m_info.InitPos;
+		m_pOwner->m_current->SetPos(m_posinfo);
+		return;
+	}
+	if (pTarget->m_rtColl.bottom +5< m_pOwner->m_current->m_rtColl.bottom && pTarget->m_bDead != true)
+	{
+		syPoint m_posinfo = m_pOwner->m_current->m_info.InitPos;
+		m_pOwner->GetMario(4);
+		m_pOwner->m_current->SetPos(m_posinfo);
+		pTarget->delY = 1;
+		pTarget->Frame();
+		/*		current_mario.get()->m_bDead = true;*/
+		return;
+
+	}
+
+		pTarget->m_bDead = true;
 
 }

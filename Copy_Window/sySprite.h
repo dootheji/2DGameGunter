@@ -28,8 +28,9 @@ public:
 	virtual bool  Set(syObjectInfo info, int bitmapid, int mask);
 	void Set(syPoint pos, RECT rt, float fSpeed) 
 	{
-		m_info.InitPos = pos;
+		m_info.m_pos = pos;
 		syObject::Set(pos,rt,fSpeed);
+		m_info.InitPos = pos;
 		
 	};
 	virtual void  Draw(DWORD dwMode);

@@ -1,4 +1,5 @@
 #include "sample.h"
+
 static float fTimer = 0.0f;
 sample::sample()
 {
@@ -59,22 +60,23 @@ void	sample::drawtileRect()
 
 bool	sample::Init()
 {
-	I_Fsm.Add(STATE_STAND, EVENT_TIMER, STATE_MOVE);
-	I_Fsm.Add(STATE_STAND, STATE_DEAD, STATE_DEAD);
+	I_Fsm.Add(ACTION_STAND, SYSTATE_TILECOLL, ACTION_MOVE);
+	I_Fsm.Add(ACTION_STAND, SYSTATE_DEAD, ACTION_DEAD);
 
-	I_Fsm.Add(STATE_MOVE, EVENT_FINDTARGET, STATE_ATTACK);
-	I_Fsm.Add(STATE_MOVE, STATE_DEAD, STATE_DEAD);
-	I_Fsm.Add(STATE_MOVE, EVENT_FINDTARGET, STATE_STAND);
+	I_Fsm.Add(ACTION_MOVE, SYSTATE_FINDTARGET, ACTION_ATTACK);
+	I_Fsm.Add(ACTION_MOVE, SYSTATE_DEAD, ACTION_DEAD);
+	I_Fsm.Add(ACTION_MOVE, SYSTATE_TILECOLL, ACTION_STAND);
 
-	I_Fsm.Add(STATE_ATTACK, EVENT_TIMER, STATE_STAND);
-	I_Fsm.Add(STATE_ATTACK, STATE_DEAD, STATE_DEAD);
-	I_Fsm.Add(STATE_ATTACK, EVENT_LOSTTARGET, STATE_MOVE);
+	I_Fsm.Add(ACTION_ATTACK, SYSTATE_FINDTARGET, ACTION_STAND);
+	I_Fsm.Add(ACTION_ATTACK, SYSTATE_DEAD, ACTION_DEAD);
+	I_Fsm.Add(ACTION_ATTACK, SYSTATE_TILECOLL, ACTION_MOVE);
 
 
 	I_SoundMgr.Load(L"../../data/sound/mario.mp3");
 	I_SoundMgr.Load(L"../../data/sound/Jump.wav");
 	I_SoundMgr.Load(L"../../data/sound/Mariodies.wav");
-	I_SoundMgr.Load(L"../../data/sound/Gameover.wav");
+	I_SoundMgr.Load(L"../../data/sound/Gameover.mp3");
+	I_SoundMgr.Load(L"../../data/sound/win.wav");
 	syObjectInfo info;
 	info.m_pos = syPoint(m_rtClient.right / 2, m_rtClient.bottom / 2);
 	RECT rt = { 0,0,m_rtClient.right, m_rtClient.bottom };
@@ -84,6 +86,27 @@ bool	sample::Init()
 	m_bk.Load(L"../../data/bitmap/0612.bmp");
 	m_bk.Set(info);
 	m_bk.i_moveFlag = 0;
+
+	
+	rt = { 0,0,300, 50 };
+	info.rt = rt;
+	info.fSpeed = 0.0f;
+	m_gameover.Init();
+	m_gameover.Load(L"../../data/bitmap/Gunter_gameover.bmp");
+	m_gameover.Set(info);
+	m_gameover.i_moveFlag = 0;
+
+	
+	rt = { 0,0,300, 100 };
+	info.rt = rt;
+	info.fSpeed = 0.0f;
+	m_win.Init();
+	m_win.Load(L"../../data/bitmap/gunter_win.bmp");
+	m_win.Set(info);
+	m_win.i_moveFlag = 0;
+
+
+
 	drawtileRect();
 	
 
@@ -95,24 +118,38 @@ bool	sample::Init()
 	{
 		sySprite s0;
 		s0.Init();
-		s0.SetRTSize(0.5f);
-		s0.Set(pData->m_SpriteListData[iSprite], pData->m_iBitmapID, pData->m_iMaskBitmapID);
+		s0.SetRTSize(0.5f);		
+
+
 		s0.m_info.bLoop = true;
 		s0.m_bDead = false;
 		s0.m_iCurrentFrame = 0;
 
 		s0.setSpeed(80.0f);
 		s0.i_moveFlag = 3;
-		
-		s0.SetPos(100,100);
+		s0.Set(pData->m_SpriteListData[iSprite], pData->m_iBitmapID, pData->m_iMaskBitmapID);
+		s0.SetPos(100, 100);
 		m_gunter.push_back(s0);
 	}
 	current_gunter = &m_gunter[0];
 
-	mario.Init();
-	current_mario = mario.GetMario(1);
 
 	
+	shared_ptr<syEnemy> data = make_shared<syEnemy>();
+	data.get()->Init();
+	current_mario.push_back(data);
+	shared_ptr<syEnemy> data2 = make_shared<syEnemy>();
+	data2.get()->Init();
+	current_mario.push_back(data2);
+	shared_ptr<syEnemy> data3 = make_shared<syEnemy>();
+	data3.get()->Init();
+	current_mario.push_back(data3);
+	/*current_mario = (data.get()->m_current);*/
+	//current_mario.get()->m_dwCurrentState = 0;
+	//current_mario = make_shared<syEnemy>();
+	//current_mario.get()->Init();
+	
+
 	return true;
 }
 
@@ -136,14 +173,17 @@ void sample::setSpriteNum()
 
 
 	syPoint m_posinfo = current_gunter->m_info.InitPos;
+	float   tem_delX = current_gunter->delX;
+	float   tem_delY = current_gunter->delY;
 	//앞 보는 펭귄
 	if (isFront)
 	{
 		//jumping
-		if (current_gunter->delY > -1 || g_ActionInput.bWKey == KEY_HOLD)
+		if (istileColl(current_gunter) == false ||current_gunter->delY > -1 || g_ActionInput.bWKey == KEY_HOLD)
 		{
 			current_gunter = &m_gunter[STATE_JUMPINGFORWORD];
 			current_gunter->SetPos(m_posinfo);
+			current_gunter->setDel(tem_delX, tem_delY);
 			m_iTimerSprite = 0;
 			return;
 		}
@@ -154,6 +194,7 @@ void sample::setSpriteNum()
 			{
 				current_gunter = &m_gunter[STATE_FORWORD];
 				current_gunter->SetPos(m_posinfo);
+				current_gunter->setDel(tem_delX, tem_delY);
 				m_iTimerSprite = 0;
 			}
 
@@ -162,6 +203,7 @@ void sample::setSpriteNum()
 			{
 				current_gunter = &m_gunter[STATE_IDLEFORWORD];
 				current_gunter->SetPos(m_posinfo);
+				current_gunter->setDel(tem_delX, tem_delY);
 				m_iTimerSprite = 0;
 				return;
 			}
@@ -171,10 +213,11 @@ void sample::setSpriteNum()
 	else
 	{
 		//jumping
-		if (current_gunter->delY > -1 || g_ActionInput.bWKey == KEY_HOLD)
+		if (istileColl(current_gunter) == false || current_gunter->delY > -1 || g_ActionInput.bWKey == KEY_HOLD)
 		{
 			current_gunter = &m_gunter[STATE_JUMPINGBACKWORD];
 			current_gunter->SetPos(m_posinfo);
+			current_gunter->setDel(tem_delX, tem_delY);
 			m_iTimerSprite = 0;
 		}
 		else
@@ -184,6 +227,7 @@ void sample::setSpriteNum()
 			{
 				current_gunter = &m_gunter[STATE_BACKWORD];
 				current_gunter->SetPos(m_posinfo);
+				current_gunter->setDel(tem_delX, tem_delY);
 				m_iTimerSprite = 0;
 			}
 			//idle
@@ -191,40 +235,32 @@ void sample::setSpriteNum()
 			{
 				current_gunter = &m_gunter[STATE_IDLEBACKWORD];
 				current_gunter->SetPos(m_posinfo);
+				current_gunter->setDel(tem_delX, tem_delY);
 				m_iTimerSprite = 0;
 			}
 		}
 	}
 }
 
-void	sample::playerkill()
-{	///////////////어케해야해!!!!!!!몰라!!!!!!!
-	sySound* pSoundDie = I_SoundMgr.GetPtr(2);
-	sySound* pGameOver = I_SoundMgr.GetPtr(3);
-	if (syCollision::RectInRect(current_mario->m_rtColl, current_gunter->m_rtColl))
-	{
-		if (current_gunter->delY < 0 && current_gunter->delY>-1)
-		{
-			pSoundDie->Play();
-	/*		current_mario.get()->m_bDead = true;*/
 
-		}
-		else
-		{
-			pGameOver->Play();
-			/*current_gunter->m_bDead = true;*/
-			//delete current_gunter;
-			//current_gunter->Release();
-	
-		}
-	}
-
-}
 bool   sample::Frame()
 {
 	sySound* pSound = I_SoundMgr.GetPtr(0);
-
 	pSound->Play();
+	if (current_gunter->m_bDead == true)
+	{
+		sySound* pDie = I_SoundMgr.GetPtr(3);
+		pSound->Stop();
+		pDie->Play();
+		m_gameover.Frame();
+		for (auto a : m_gunter)
+		{
+			a.m_bDead = true;
+		}
+		return true;
+	}
+
+
 	setSpriteNum();
 	//시간
 	fTimer += g_fSecondPerFrame;
@@ -237,14 +273,88 @@ bool   sample::Frame()
 	current_gunter->Frame();
 	tileColl(current_gunter);
 
-	current_mario.get()->Frame();
-	current_mario.get()->ProcessAI(current_gunter);
-	tileColl(current_mario.get());
+	for (auto a : current_mario) 
+	{
+		if (a.get()->m_current->m_bDead)
+		{
+			std::vector<shared_ptr<syEnemy>>::iterator it;
+			for (it = current_mario.begin(); it != current_mario.end();)
+			{
+				if ((*it) == a)
+				{
+					it = current_mario.erase(it);
+					sySound* pDieMario = I_SoundMgr.GetPtr(2);
+					pDieMario->Play();
 
-	//마리오와 부딪혔을 시
-	playerkill();
+				}
+
+				else
+				{
+					it++;
+				}
+
+			}
+			break;
+		}
+		if (a.get()->m_current->m_rtColl.left <1)
+		{
+			a.get()->isFront = true;
+		}
+		if (a.get()->m_current->m_rtColl.right >639)
+		{
+			a.get()->isFront = false;
+		}
+		a.get()->Frame();
+		tileColl(a);
+		a.get()->ProcessAI(current_gunter);
+
+
+	
+
+	}
+
+	if (current_gunter->m_bDead == true)
+	{
+		m_gameover.Frame();
+		for (auto a : m_gunter)
+		{
+			a.m_bDead = true;
+		}
+		return true;
+	}
+
+	if (current_mario.size() == 0)
+	{
+		pSound->Stop();
+		sySound* pWin = I_SoundMgr.GetPtr(4);
+		pWin->SetMode(FMOD_LOOP_OFF);
+		pWin->Play();
+		m_win.Frame();
+	}
 	return true;
 }
+
+template <typename T>
+bool	sample::istileColl(T *gamecharacter)
+{
+	for (auto a : m_tiles)
+	{
+		RECT r;
+		r.top = a.first->top-1;
+		r.bottom = a.first->bottom+1;
+		r.left = a.first->left-1;
+		r.right = a.first->right+1;
+
+		if (syCollision::RectInRect(gamecharacter->m_rtColl, r))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
 template <typename T>
 void	sample::tileColl(T *gamecharacter)
 {
@@ -256,30 +366,29 @@ void	sample::tileColl(T *gamecharacter)
 		r.bottom = a.first->bottom;
 		r.left = a.first->left;
 		r.right = a.first->right;
-
+		float rheight = (r.top - r.bottom) / 2;
 		if (syCollision::RectInRect(gamecharacter->m_rtColl, r))
 		{
-			if (gamecharacter->m_rtColl.bottom >= r.top &&gamecharacter->delY < 0)//위에서 떨어지는 상황
+			if (gamecharacter->m_rtColl.bottom >= r.top + rheight &&gamecharacter->delY < 0)//위에서 떨어지는 상황
 			{
 				gamecharacter->Set
-				(syPoint(gamecharacter->getPos().x, r.top - (gamecharacter->m_rtDraw.bottom / 2) -1),
+				(syPoint(gamecharacter->getPos().x, r.top - (gamecharacter->m_rtDraw.bottom / 2) ),
 					gamecharacter->m_info.rtList[m_iTimerSprite%(gamecharacter->m_info.iNumFrame)],
 					gamecharacter->getSpeed()
 				);
+	
 			}
-			else if (gamecharacter->m_rtColl.top <= r.bottom && gamecharacter->delY > 0) //밑에서 올라오는 상황
+			
+			else if (gamecharacter->m_rtColl.top <= r.bottom - rheight && gamecharacter->delY > 0) //밑에서 올라오는 상황
 			{
 				gamecharacter->setDel(gamecharacter->delX, -gamecharacter->delY);
 				gamecharacter->Set
-				(syPoint(gamecharacter->getPos().x, r.bottom + (gamecharacter->m_rtDraw.bottom / 2)+1 ),
+				(syPoint(gamecharacter->getPos().x, r.bottom + (gamecharacter->m_rtDraw.bottom / 2)),
 					gamecharacter->m_info.rtList[m_iTimerSprite% (gamecharacter->m_info.iNumFrame)],
 					gamecharacter->getSpeed()
 				);
-			}
-			//옆구리로 들어올 때
-			//오른쪽
-
-			break;
+				break;
+			}			
 		}
 		else
 		{
@@ -291,48 +400,88 @@ void	sample::tileColl(T *gamecharacter)
 
 	}
 }
+template <typename T>
+void	sample::tileColl(shared_ptr<T> game)
+{
+	shared_ptr<T> gamecharacter = game.get()->m_current;
+	for (auto a : m_tiles)
+	{
+		RECT r;
+		r.top = a.first->top;
+		r.bottom = a.first->bottom;
+		r.left = a.first->left;
+		r.right = a.first->right;
+		if (syCollision::RectInRect(gamecharacter->m_rtColl, r))
+		{
+			if (gamecharacter->m_rtColl.bottom >= r.top &&gamecharacter->delY < 0)//위에서 떨어지는 상황
+			{
+				gamecharacter->Set
+				(syPoint(gamecharacter->getPos().x, r.top - (gamecharacter->m_rtDraw.bottom / 2) - 1),
+					gamecharacter->m_info.rtList[m_iTimerSprite % (gamecharacter->m_info.iNumFrame)],
+					gamecharacter->getSpeed()
+				);
+			}
+			else if (gamecharacter->m_rtColl.top <= r.bottom && gamecharacter->delY > 0) //밑에서 올라오는 상황
+			{
+				gamecharacter->setDel(gamecharacter->delX, -gamecharacter->delY);
+				gamecharacter->Set
+				(syPoint(gamecharacter->getPos().x, r.bottom + (gamecharacter->m_rtDraw.bottom / 2) + 1),
+					gamecharacter->m_info.rtList[m_iTimerSprite % (gamecharacter->m_info.iNumFrame)],
+					gamecharacter->getSpeed()
+				);
+			}
+			//옆구리로 들어올 때
+			//오른쪽
+			game->isStand = true;
+			break;
+		}
+		else
+		{
+			gamecharacter->Set
+			(syPoint(gamecharacter->getPos().x, gamecharacter->getPos().y),
+				gamecharacter->m_info.rtList[m_iTimerSprite % (gamecharacter->m_info.iNumFrame)],
+				gamecharacter->getSpeed());
 
+			game->isStand = false;
+		}
+
+	}
+}
 
 bool   sample::Render()
 {
-	
-	m_bk.Render();
-	current_mario.get()->Render();
-	current_gunter->Render();
-
-	TCHAR m_csDebug[256];
-	_stprintf_s(m_csDebug,
-		L"delx = %1.5f dely = %1.5f  pos(%1.5f, %1.5f)",
-		current_gunter->delX, current_gunter->delY,
-		current_gunter->getPos().x, current_gunter->getPos().y);
-	PrintText(syPoint(100, 100), m_csDebug, RGB(0, 0, 0));
-
-	SetROP2(g_hOffScreenDC, R2_NOTXORPEN);
-
-	for (auto &a : m_tiles)
+	if (current_gunter->m_bDead == true)
 	{
-		Rectangle(g_hOffScreenDC,
-			a.first->left,
-			a.first->top,
-			a.first->right,
-			a.first->bottom);
+		m_gameover.Render();
+		return true;
+	}
+	m_bk.Render();
+	for (auto aa : current_mario)
+	{
+		aa.get()->m_current->Render();
 	}
 
 
-	int PrevMode = Rectangle(g_hOffScreenDC,
-		current_gunter->m_rtColl.left,
-		current_gunter->m_rtColl.top,
-		current_gunter->m_rtColl.right,
-		current_gunter->m_rtColl.bottom);
+	current_gunter->Render();
 
- Rectangle(g_hOffScreenDC,
-	 current_mario.get()->m_rtColl.left,
-	 current_mario.get()->m_rtColl.top,
-	 current_mario.get()->m_rtColl.right,
-	 current_mario.get()->m_rtColl.bottom);
 
-	SetROP2(m_hOffScreenDC, PrevMode);
-
+	
+	if (current_mario.size() == 0)
+	{
+		BLENDFUNCTION bf;
+		bf.AlphaFormat = AC_SRC_ALPHA;
+		bf.BlendFlags = 0;
+		bf.BlendOp = AC_SRC_OVER;
+		bf.SourceConstantAlpha = 255;
+		AlphaBlend(g_hOffScreenDC,
+			320 - m_win.m_rtObj.right/2, 240 - m_win.m_rtObj.bottom,
+			m_win.m_rtObj.right, m_win.m_rtObj.bottom,
+			m_win.GetBitmap()->m_hMemDC,
+			m_win.m_rtObj.left, m_win.m_rtObj.top,
+			m_win.m_rtObj.right, m_win.m_rtObj.bottom,
+			bf);
+		return true;
+	}
 	return true;
 
 }
@@ -345,7 +494,11 @@ bool   sample::Release()
 	}
 
 	m_bk.Release();
+	m_gameover.Release();
+
 	m_tiles.clear();
+	current_gunter->Release();
+
 	return true;
 }
 
